@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import FormAddTodo from "./components/FormAddTodo";
 import TodoList from "./components/TodoList";
 import {
@@ -36,23 +36,35 @@ function App() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (isError) {
-      toast.error(isError);
-    }
-  }, [isError]);
+const toastId = useRef(null);
 
-  useEffect(() => {
-    if (isSucces) {
-      toast.success(isSucces);
-    }
-  }, [isSucces]);
+useEffect(() => {
+  if (isLoading) {
+    toastId.current = toast.loading("Sedang memproses...");
+  }
 
-  useEffect(() => {
-    if (isLoading === true) {
-      toast.loading("loading");
+  if (isSucces) {
+    if (toastId.current) {
+      toast.update(toastId.current, {
+        render: isSucces,
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
     }
-  }, [isLoading]);
+  }
+
+  if (isError) {
+    if (toastId.current) {
+      toast.update(toastId.current, {
+        render: isError,
+        type: "error",
+        isLoading: false,
+        autoClose: 5000,
+      });
+    }
+  }
+}, [isLoading, isSucces, isError]);
 
   const handlePostTodo = async (value) => {
     setisLoading(true);
@@ -136,6 +148,7 @@ function App() {
 
   return (
     <div className="bg-gradient-to-br from-gray-900 to-slate-800 text-white">
+          <ToastContainer />
       <div className="min-h-screen w-full p-4 sm:p-8 flex flex-col items-center">
         <header className="text-center my-8">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
